@@ -20,7 +20,7 @@ YSPACING = CARDHEIGHT + 4*MARGIN
 OFFSET = 20
 
 BACKGROUND = '#070'
-OUTLINE = '#060'        # outline color of foundation files
+PILEFILL = 'OliveDrab4' # fill color of piles
 TEXT = 'yellow'              # button text color
 BUTTON = 'forest green'
 
@@ -98,11 +98,11 @@ class View:
         canvas.bind('<ButtonRelease-1>', self.onDrop)
 
         for t in self.tableau:
-            canvas.create_rectangle(t[0], t[1], t[0]+CARDWIDTH, t[1]+CARDHEIGHT, outline = OUTLINE)    
+            canvas.create_rectangle(t[0], t[1], t[0]+CARDWIDTH, t[1]+CARDHEIGHT, fill=PILEFILL, outline=PILEFILL)    
         for f in self.foundations:
-            canvas.create_rectangle(f[0], f[1], f[0]+CARDWIDTH, f[1]+CARDHEIGHT, outline = OUTLINE)
+            canvas.create_rectangle(f[0], f[1], f[0]+CARDWIDTH, f[1]+CARDHEIGHT, fill=PILEFILL, outline=PILEFILL)
         for c in self.cells:
-            canvas.create_rectangle(c[0], c[1], c[0]+CARDWIDTH, c[1]+CARDHEIGHT, outline = OUTLINE)
+            canvas.create_rectangle(c[0], c[1], c[0]+CARDWIDTH, c[1]+CARDHEIGHT, fill=PILEFILL, outline=PILEFILL)
         self.buttons = ButtonBar(canvas)
         self.buttons.tag_bind('undo', '<ButtonPress-1>', self.undo)
         self.buttons.tag_bind('redo', '<ButtonPress-1>', self.redo)
@@ -316,22 +316,18 @@ class View:
         self.model.restart()
         self.show()
 
-    def redeal(self, event):
-        self.model.redeal()
-        self.show()
-
     def disableRedo(self):
         self.buttons.itemconfigure('redo', state=tk.HIDDEN)
 
     def disableUndo(self):
-        for item in ('undo', 'restart', 'redeal'):
+        for item in ('undo', 'restart'):
             self.buttons.itemconfigure(item, state=tk.HIDDEN)
 
     def enableRedo(self):
         self.buttons.itemconfigure('redo', state=tk.NORMAL)
 
     def enableUndo(self):
-        for item in ('undo', 'restart', 'redeal'):
+        for item in ('undo', 'restart'):
             self.buttons.itemconfigure(item, state=tk.NORMAL)
 
     def wm_delete_window(self):
