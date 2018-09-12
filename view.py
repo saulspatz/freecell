@@ -7,7 +7,6 @@ The canvas widget is used for both view and controller.
 import sys, os, itertools
 import tkinter as tk
 from model import SUITNAMES, RANKNAMES, ALLRANKS, Card
-from utils import ScrolledCanvas
 
 # Constants determining the size and layout of cards and stacks.  
 
@@ -29,8 +28,6 @@ BUTTON = 'forest green'
 DEFAULT_CURSOR = 'arrow'
 SELECT_CURSOR = 'hand2'
 
-SCROLL_INTERVAL = 5     # miliseconds
-SCROLL_DISTANCE = '2m'
 imageDict = {}   # hang on to images, or they may disappear!
 
 class ButtonBar(tk.Canvas):
@@ -55,7 +52,6 @@ class View:
     clicks.
     '''
     def __init__(self, parent, quit, **kwargs):
-        # kwargs passed to Scrolled Canvas
         # quit is function to call when main window is closed
         self.parent = parent          # parent is the Free Cell application
         self.model =  parent.model
@@ -88,9 +84,8 @@ class View:
             x += XSPACING2 
         self.grabPiles = self.tableau+self.cells
         self.piles = self.grabPiles+self.foundations        
-        canvas = self.canvas = ScrolledCanvas(root, bg=BACKGROUND, cursor=DEFAULT_CURSOR, 
-                                            scrolls=tk.VERTICAL, bd=0, highlightthickness=0, **kwargs)
-        self.canvas.canvas['yscrollincrement'] = SCROLL_DISTANCE
+        canvas = self.canvas = tk.Canvas(root, bg=BACKGROUND, cursor=DEFAULT_CURSOR, 
+                                                             bd=0, highlightthickness=0, **kwargs)
         canvas.pack(expand=tk.YES, fill=tk.Y)
         width = kwargs['width']
         height = kwargs['height']
@@ -99,14 +94,8 @@ class View:
         self.createCards()
         canvas.tag_bind("card", '<ButtonPress-1>', self.onClick)
         canvas.tag_bind("card", '<Double-Button-1>', self.onDoubleClick)
-        canvas.canvas.bind('<B1-Motion>', self.drag)
-        canvas.canvas.bind('<ButtonRelease-1>', self.onDrop)
-
-        # Avoid scroll wheel problems on some Mac installations
-        if sys.platform != 'darwin':
-            canvas.canvas.bind('<Button-4>', self.scrollWheel)
-            canvas.canvas.bind('<Button-5>', self.scrollWheel)
-            canvas.canvas.bind('<MouseWheel>', self.scrollWheel)
+        canvas.bind('<B1-Motion>', self.drag)
+        canvas.bind('<ButtonRelease-1>', self.onDrop)
 
         for t in self.tableau:
             canvas.create_rectangle(t[0], t[1], t[0]+CARDWIDTH, t[1]+CARDHEIGHT, outline = OUTLINE)    
@@ -114,7 +103,6 @@ class View:
             canvas.create_rectangle(f[0], f[1], f[0]+CARDWIDTH, f[1]+CARDHEIGHT, outline = OUTLINE)
         for c in self.cells:
             canvas.create_rectangle(c[0], c[1], c[0]+CARDWIDTH, c[1]+CARDHEIGHT, outline = OUTLINE)
-        self.scrolling = False
         self.buttons = ButtonBar(canvas)
         self.buttons.tag_bind('undo', '<ButtonPress-1>', self.undo)
         self.buttons.tag_bind('redo', '<ButtonPress-1>', self.redo)
@@ -219,13 +207,7 @@ class View:
         canvas.move('floating', dx, 0)
 
     def drag(self, event):
-        canvas = self.canvas.canvas
-        sd = self.scrollDirection()
-        if not self.scrolling and sd != 0:
-            self.scrolling = True
-            canvas.after(SCROLL_INTERVAL, self.autoScroll, sd)
-        elif self.scrolling and sd == 0:
-            self.scrolling = False
+        canvas = self.canvas
         try:
             x, y = event.x, event.y
             dx, dy = x - self.mouseX, y - self.mouseY
@@ -234,45 +216,13 @@ class View:
         except AttributeError:
             pass
 
-    def scrollDirection(self):
-        '''
-        Return values:
-          1: scroll down
-          -1: scroll up
-          0: don't scroll
-        SIDE EFFECT:
-          Set SCROLL_INTERVAL to value dependent on how far the card's been dragged
-        '''
-        global SCROLL_INTERVAL
-        si = (50, 40, 30, 20, 10, 5)
-        answer = 0
-        canvas = self.canvas.canvas
-        north, south = canvas.yview()
-        extent = int(canvas['scrollregion'].split()[3])
-        south  = int( south*extent)
-        north =  int(north*extent) + self.buttons.winfo_height() + 5
-        try:
-            left, top, right, bottom = canvas.bbox('current')
-            if bottom > south:
-                answer =  1
-                k = min(5, (bottom - south) // 16)
-                SCROLL_INTERVAL = si[k]
-            elif top < north:
-                answer = -1
-                k = min(5, (north - top) // 16)
-                SCROLL_INTERVAL = si[k]
-        except TypeError:
-            pass
-        return answer
-
     def onClick(self, event):
         '''
         Respond to click on cell or tableau pile.  
         Clicks on foundation piles are ignored.
         '''
-        self.scrolling = False
         model = self.model
-        canvas = self.canvas.canvas
+        canvas = self.canvas
         tag = [t for t in canvas.gettags('current') if t.startswith('code')][0]
         code = int(tag[4:])             # code of the card clicked
         for k, p in enumerate(model.grabPiles):
@@ -286,39 +236,6 @@ class View:
 
     def onDoubleClick(self, event):
         pass
-
-    def scrollWheel(self, event):
-        '''
-        Use the mouse wheel to scroll the canvas.
-        If we are dragging cards, they must be moved in the same direction
-        as the canvas scrolls, or the cursor will become separated from the
-        cards being dragged. 
-        '''
-        canvas = self.canvas.canvas
-        lo, hi = canvas.yview()
-        height = int(canvas['scrollregion'].split()[3])
-        if event.num == 5 or event.delta < 0:       
-            n = 1
-        elif event.num == 4 or event.delta > 0:     
-            n = -1
-        canvas.yview_scroll(n, tk.UNITS)
-        lo2, hi2 = canvas.yview()
-        canvas.move('floating', 0, (hi2-hi) * height)
-
-    def autoScroll(self, n):
-        '''
-        If scrolling has been scheduled and not canceled, scroll a bit and
-        schedule some more scrolling
-        '''
-        if not self.scrolling:
-            return
-        canvas = self.canvas.canvas
-        lo, hi = canvas.yview()
-        height = int(canvas['scrollregion'].split()[3])
-        canvas.yview_scroll(n, tk.UNITS)
-        lo2, hi2 = canvas.yview()
-        canvas.move('floating', 0, (hi2-hi) * height)
-        canvas.after(SCROLL_INTERVAL, self.autoScroll, n)
 
     def horizontalOverlap(self, w1, e1, w2, e2):
         '''
@@ -348,9 +265,8 @@ class View:
         If that is not a legal drop target then the other pile is considered.
         '''
         piles = self.piles
-        self.scrolling = False
         model = self.model
-        canvas = self.canvas.canvas   
+        canvas = self.canvas   
         if not model.moving():
             return
         canvas.configure(cursor=DEFAULT_CURSOR)
@@ -371,7 +287,7 @@ class View:
     def abortMove(self):
         canvas = self.canvas
         self.model.abortMove()
-        canvas.canvas.yview_moveto(self.yfraction)
+        canvas.yview_moveto(self.yfraction)
         self.showTableau(self.model.moveOrigin)
         canvas.dtag('floating', 'floating')
 
