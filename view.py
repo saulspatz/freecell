@@ -170,8 +170,6 @@ class View:
             self.enableRedo()
         else:
             self.disableRedo()   
-        if model.win():
-            canvas.yview_moveto(0.0)
 
     def dealUp(self):
         self.model.dealUp()
@@ -196,7 +194,6 @@ class View:
         if not selection:
             return
         self.mouseX, self.mouseY = mouseX, mouseY
-        self.yfraction = canvas.yview()[0]
         west = self.grabPiles[k][0]
         for card in selection:
             tag = 'code%s'%card.code
@@ -236,66 +233,76 @@ class View:
 
     def onDoubleClick(self, event):
         pass
+    
+    def dropTargets(self):
+        piles = self.piles
+        heaps = self.model.piles
+        targets = [[left, top, left+CARDWIDTH, top+CARDHEIGHT ] for left,top in piles]
+        for idx in range(8):
+            cards = len(heaps)
+            if cards > 1:
+                targets[idx][3]+= OFFSET * (cards-1)
+        return targets    
 
-    def horizontalOverlap(self, w1, e1, w2, e2):
+    def overlappingPiles(self):
         '''
-        Find the horizontal overlap between two rectangles with west and east edges
-        (w1, e1) and (w2, e2) respectively.  A negative number is returned if they
-        don't overlap at all.  A return value of 0 means they coincide in one edge only.
-        Vertical position of the rectangles is ignored, so they may be considered infinite
-        strips.
+        Return a list of the indices of the piles that overlap the cards being moved, 
+        sorted in decreasing order of overlap
         '''
-        return min(e1, e2) - max(w1, w2)
-
-    def findOverlapping(self, seq, west, east):
-        '''
-        Return a list of the indices of the piles in seq that overlap a card with edges
-        west and east, sorted in decreasing order of overlap
-        '''
-        def overlap(pile):
-            return self.horizontalOverlap(west, east, pile[0], pile[0]+CARDWIDTH)
-        answer = [(pile, k) for k, pile in enumerate(seq) if  overlap(pile)>= 0]
-        answer = sorted(answer, key = lambda x: overlap(x[0]), reverse=True)
-        return [x[1] for x in answer]
-
+        model = self.model
+        origin = model.moveOrigin
+        piles = self.piles
+        targets = self.dropTargets()
+        answer = [ ]
+        west, north, east, south = self.canvas.bbox(tk.CURRENT)
+        dragging = len(model.selection)
+        if dragging > 1:
+            south += OFFSET *(dragging-1)
+        for idx in range(16):
+            if idx == origin: continue
+            left, top, right, bottom = targets[idx]
+            horizontal = min(east, right) - max(west, left) 
+            if horizontal <= 0: continue
+            vertical = min(bottom, south) -  max(top, north)
+            if vertical <= 0: continue
+            answer.append((horizontal*vertical, idx))
+        return [ans[1] for ans in sorted(answer, reverse=True)]
+                    
     def onDrop(self, event):
         '''
-        Drop the selected cards.  The cards being dragged must overlap a tableau pile.
-        If they overlap two tableau piles, the one with more overlap is tested first.  
-        If that is not a legal drop target then the other pile is considered.
+        Drop the selected cards.    The  cards being dragged must overlap the target pile.  
+        If they overlap more than one pile, all such piles are tested, in order of the 
+        area overlapped.
         '''
         piles = self.piles
         model = self.model
         canvas = self.canvas   
         if not model.moving():
             return
+        x, y = event.x, event.y
         canvas.configure(cursor=DEFAULT_CURSOR)
-        west, north, east, south = canvas.bbox(tk.CURRENT)
         success = False
-
-        for idx in self.findOverlapping(piles, west, east):
-            if idx == model.moveOrigin or not model.canDrop(idx):
-                continue
-            self.completeMove(idx)
-            success = True
-            break 
+        for idx in self.overlappingPiles():
+                if not model.canDrop(idx):
+                    continue
+                self.completeMove(idx)
+                success = True
+                break 
         if not success:  
             self.abortMove()
-            
         self.show()
 
     def abortMove(self):
         canvas = self.canvas
         self.model.abortMove()
-        canvas.yview_moveto(self.yfraction)
-        self.showTableau(self.model.moveOrigin)
-        canvas.dtag('floating', 'floating')
+        self.show()
+        canvas.dtag('floating')
 
     def completeMove(self, dest):
         model = self.model
         model.completeMove(dest)
         self.show()
-        self.canvas.dtag('floating', 'floating')
+        self.canvas.dtag('floating')
 
     def undo(self, event):
         self.model.undo()
