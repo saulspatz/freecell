@@ -28,6 +28,8 @@ BUTTON = 'forest green'
 DEFAULT_CURSOR = 'arrow'
 SELECT_CURSOR = 'hand2'
 
+SUIT_FONT=("Times", "48", "bold")
+
 imageDict = {}   # hang on to images, or they may disappear!
 
 class ButtonBar(tk.Canvas):
@@ -97,12 +99,19 @@ class View:
         canvas.bind('<B1-Motion>', self.drag)
         canvas.bind('<ButtonRelease-1>', self.onDrop)
 
+        suitSymobls = ('\u2660','\u2665','\u2666','\u2663') 
         for t in self.tableau:
-            canvas.create_rectangle(t[0], t[1], t[0]+CARDWIDTH, t[1]+CARDHEIGHT, fill=PILEFILL, outline=PILEFILL)    
-        for f in self.foundations:
-            canvas.create_rectangle(f[0], f[1], f[0]+CARDWIDTH, f[1]+CARDHEIGHT, fill=PILEFILL, outline=PILEFILL)
+            canvas.create_rectangle(t[0], t[1], t[0]+CARDWIDTH, t[1]+CARDHEIGHT, 
+                                                    fill=PILEFILL, outline=PILEFILL)    
+        for idx, f in enumerate(self.foundations):
+            canvas.create_rectangle(f[0], f[1], f[0]+CARDWIDTH, f[1]+CARDHEIGHT, 
+                                                    fill=PILEFILL, outline=PILEFILL)
+            canvas.create_text(f[0]+CARDWIDTH//2,f[1]+CARDHEIGHT//2, text=suitSymobls[idx], 
+                                            fill='khaki',font=SUIT_FONT)
         for c in self.cells:
-            canvas.create_rectangle(c[0], c[1], c[0]+CARDWIDTH, c[1]+CARDHEIGHT, fill=PILEFILL, outline=PILEFILL)
+            canvas.create_rectangle(c[0], c[1], c[0]+CARDWIDTH, c[1]+CARDHEIGHT, 
+                                                    fill=PILEFILL, outline=PILEFILL)
+        
         self.buttons = ButtonBar(canvas)
         self.buttons.tag_bind('undo', '<ButtonPress-1>', self.undo)
         self.buttons.tag_bind('redo', '<ButtonPress-1>', self.redo)

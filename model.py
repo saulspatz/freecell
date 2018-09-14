@@ -12,7 +12,7 @@ ALLRANKS = range(1, 14)      # one more than the highest value
 # dummy element at index 0 so it can be indexed directly with the card
 # value.
 
-SUITNAMES = ('club', 'diamond', 'heart', 'spade')
+SUITNAMES = ('spade', 'heart', 'diamond', 'club')
 RANKNAMES = ["", "Ace"] + list(map(str, range(2, 11))) + ["Jack", "Queen", "King"]
 
 DEAL = (0, 0, 10, 0)     # used in undo/redo stacks
@@ -84,8 +84,9 @@ class OneWayStack(Stack):
     Used for the foundations.
     No cards can be selected.
     '''
-    def __init__(self):
+    def __init__(self, suit):
         super().__init__()
+        self.suit=suit
 
     def add(self, card):
         super().add(card)
@@ -145,7 +146,7 @@ class Model:
         self.foundations = []
         self.cells = [ ] 
         for k in range(4):
-            self.foundations.append(OneWayStack())
+            self.foundations.append(OneWayStack(SUITNAMES[k]))
         self.tableau = []
         for k in range(8):
             self.tableau.append(SelectableStack()) 
@@ -237,7 +238,7 @@ class Model:
             if len(source) != 1:
                 return False
             if pile.isEmpty():
-                return source[0].rank == ACE
+                return source[0].rank == ACE and source[0].suit==piles[idx].suit
             return source[0].follows(pile[-1])
         
     def completeMove(self, dest):
@@ -304,3 +305,6 @@ class Model:
         while self.canUndo():
             self.undo()
 
+
+            
+            
