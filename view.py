@@ -124,8 +124,8 @@ class View:
     def loadImages(self):
         PhotoImage = tk.PhotoImage
         cardDir = os.path.join(os.path.dirname(sys.argv[0]), 'cards') 
-        for rank, suit in itertools.product(ALLRANKS, SUITNAMES):
-            face = PhotoImage(file = os.path.join(cardDir, suit+RANKNAMES[rank]+'.gif'))               
+        for suit, rank in itertools.product(SUITNAMES, ALLRANKS):
+            face = PhotoImage(file = os.path.join(cardDir, RANKNAMES[rank]+suit+'.gif'))               
             imageDict[rank, suit] = face
 
     def createCards(self):
@@ -133,7 +133,7 @@ class View:
         canvas = self.canvas    
         for card in model.deck:
             c = canvas.create_image(-200, -200, image = None, anchor = tk.NW, tag = "card")
-            canvas.addtag_withtag('code%d'%card.code, c)
+            canvas.addtag_withtag('code%s'%card.code, c)
 
     def showTableau(self, k):
         '''
@@ -142,7 +142,7 @@ class View:
         x, y = self.tableau[k]
         canvas = self.canvas
         for card in self.model.tableau[k]:
-            tag = 'code%d'%card.code
+            tag = 'code%s'%card.code
             canvas.coords(tag, x, y)
             foto = imageDict[card.rank, card.suit]
             y += OFFSET
@@ -156,7 +156,7 @@ class View:
         x, y = self.cells[k]
         canvas = self.canvas
         for card in self.model.cells[k]:
-            tag = 'code%d'%card.code
+            tag = 'code%s'%card.code
             canvas.coords(tag, x, y)
             foto = imageDict[card.rank, card.suit]
             canvas.itemconfigure(tag, image = foto)
@@ -189,7 +189,7 @@ class View:
         canvas = self.canvas
         x, y = self.foundations[k]
         for card in model.foundations[k]:
-            tag = 'code%d'%card.code
+            tag = 'code%s'%card.code
             canvas.itemconfigure(tag, image = imageDict[card.rank, card.suit])
             canvas.coords(tag,x,y)
             canvas.tag_raise(tag)
@@ -230,7 +230,7 @@ class View:
         model = self.model
         canvas = self.canvas
         tag = [t for t in canvas.gettags('current') if t.startswith('code')][0]
-        code = int(tag[4:])             # code of the card clicked
+        code = tag[4:]             # code of the card clicked
         for k, p in enumerate(model.grabPiles):
             idx = p.find(code)
             if idx != -1:
@@ -292,7 +292,7 @@ class View:
         canvas.configure(cursor=DEFAULT_CURSOR)
         success = False
         for idx in self.overlappingPiles():
-                if not model.canDrop(idx):
+                if not model.piles[idx].canDrop():
                     continue
                 self.completeMove(idx)
                 success = True

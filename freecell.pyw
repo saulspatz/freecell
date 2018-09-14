@@ -6,7 +6,7 @@ The cards are too small, and they don't leave enough space between the free cell
 and the foundation piles.  Also, they don't include solvers.  A free cell solver is
 challenging, but I'll try iterative deepening.
 '''
-from model import Model 
+import model
 from view import View
 import tkinter as tk
 from tkinter.messagebox import showerror, showinfo, askokcancel
@@ -27,7 +27,7 @@ The "Undo" and Redo" buttons are self-explanatory.  The "Restart" button puts th
 '''        
 class FreeCell:
     def __init__(self):
-        self.model = Model()
+        self.model = model.model
         self.view = View(self, self.quit, width=1000, height=1000, scrollregion=(0, 0, 950, 3000) )
         self.makeHelp()
         self.makeMenu()
