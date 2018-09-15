@@ -1,6 +1,9 @@
 # model.py Model for free cell solitaire
 
 import random, itertools
+from collections import namedtuple
+
+UndoRecord = namedtuple('Undorecord', 'source target cards auto'.split())
 
 ACE = 1
 JACK = 11
@@ -244,57 +247,82 @@ class Model:
     def abortMove(self):
         self.selection = []
 
-    def moving(self):
-        return self.selection != [] 
-
     def completeMove(self, dest):
         '''
         Compete a legal move.
         Tranfer the moving cards to the destination stack.
         '''
-        source = self.piles[self.moveOrigin]
-        moving = self.selection
+        src = self.moveOrigin
+        source = self.piles[src]
+        select = self.selection
         target = self.piles[dest] 
         target.extend(self.selection)
         source[:] = source[:self.moveIndex]
+        self.undoStack.append(UndoRecord(src, dest, len(select), False))
         self.selection = []
         self.redoStack = []
 
     def win(self):
         return all((len(f)  == 13 for f in self.foundations)) 
+    
+    def topToCell(self, idx):
+        '''
+        Move the top card of piles[idx] to a free cell
+        '''
+        piles = self.piles
+        for k in range(8,12):
+            if piles[k].isEmpty():
+                break
+        else:   # loop else
+            return False
+        piles[k].append(piles[idx].pop())
+        self.undoStack.append(UndoRecord(idx, k, 1, False))
+        return True
 
     def undo(self):
         ''''
-        Pop a record off the undo stack and undo the corresponding move.
+        Pop any automatic moves off the stack and redo the corresponding moves.
+        Then pop one record off the undo stack and undo the corresponding move.
+        
         '''
-        (s, t, n, f) = self.undoStack.pop()
-        self.redoStack.append((s,t,n, f))
-        if (s, t, n, f) == DEAL:
-            self.undeal()
-        else:
-            if f:   # flip top card
-                self.tableau[s][-1].showBack()
-            source = self.tableau[s] if s < 10 else self.foundations[s-10]
-            target = self.tableau[t] if t < 10 else self.foundations[t-10]
-            assert len(target) >= n
+        def unplay():
+            (s, t, n, a) = record =  undoStack.pop()
+            redoStack.append(record)
+            source = piles[s] 
+            target = piles[t]
             source.extend(target[-n:])
-            target[:] = target[:-n]
+            target[:] = target[:-n]            
+            
+        undoStack = self.undoStack
+        redoStack = self.redoStack
+        piles = self.piles
+        while undoStack[-1].auto : 
+            unplay()
+        unplay()
 
     def redo(self):
         ''''
         Pop a record off the redo stack and redo the corresponding move.
+        Then pop and redo any automatic moves.
         ''' 
-        (s, t, n, f) = self.redoStack.pop()
-        self.undoStack.append((s,t,n, f))
-        if (s, t, n, f) == DEAL:
-            self.dealUp(True) 
-        else:
-            source = self.tableau[s] if s < 10 else self.foundations[s-10]
-            target = self.tableau[t] if t < 10 else self.foundations[t-10]
-            assert n <= len(source)
+        def replay():
+            (s, t, n, a) = record = redoStack.pop()
+            undoStack.append(record)
+            source = piles[s] 
+            target = piles[t]
             target.extend(source[-n:])
-            source[:] = source[:-n]     
-
+            source[:] = source[:-n]             
+            
+        undoStack = self.undoStack
+        redoStack = self.redoStack
+        piles = self.piles        
+        replay()
+        try:
+            while redoStack[-1].auto:
+                replay()
+        except IndexError:
+            pass
+            
     def canUndo(self):
         return self.undoStack != []
 
@@ -305,31 +333,33 @@ class Model:
         while self.canUndo():
             self.undo()
 
-    def makeForcedMoves(self):
-        forced = False
+    def automaticMove(self):
         piles = self.piles
+        foundations = self.foundations
+        reds = piles[13], piles[14]     # foundations
+        blacks = piles[12], piles[15]
         for idx in range(12):
+            add = False
             source = piles[idx]
             if source.isEmpty(): continue
             card = source[-1]
-            target =piles[ 12 + SUITNAMES.index(card.rank)]
+            target =piles[ 12 + SUITNAMES.index(card.suit)]
             if card.rank == ACE:
-                forced = True
-                target.add(card)
-                source.pop()
+                add = True
             elif card.rank == 2:
-                if not target.isEmpty():
-                    target.add(card)
-                    source.pop()
-                    forced == True
+                add =  not target.isEmpty()
             else:
-                blacks =  ('club','spade')
-                reds = ('heart', 'diamond')
-                suit1, suit2 = blacks if card.suit in reds  else blacks
-                code1 =  13*SUITNAMES.index(suit1)+card.rank-3 
-                code2 =  13*SUITNAMES.index(suit2)+card.rank-3
-                count = 0
-                    
-        if forced: self.makeForcedMoves()
-                       
+                if len(target) != card.rank-1: 
+                    continue
+                stacks = blacks if card.suit in 'HD' else reds
+                if all(len(stack)>=card.rank-1 for stack in stacks):
+                    add = True
+                elif all(len(fnd)>=card.rank-2 for fnd in foundations):
+                    add = True
+            if add:
+                target.add(source.pop())
+                self.undoStack.append(UndoRecord(idx,piles.index(target),1,True))
+                break
+        return add
+                          
 model = Model()

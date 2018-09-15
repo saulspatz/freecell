@@ -4,7 +4,7 @@ The visual interface for free cell solitaire.
 The view knows about the model, but not vice versa
 The canvas widget is used for both view and controller.
 '''
-import sys, os, itertools
+import sys, os, itertools, time
 import tkinter as tk
 from model import SUITNAMES, RANKNAMES, ALLRANKS, Card
 
@@ -35,7 +35,7 @@ imageDict = {}   # hang on to images, or they may disappear!
 class ButtonBar(tk.Canvas):
     def __init__(self, parent):
         super().__init__(parent, bg=BACKGROUND, bd=0, highlightthickness=0)
-        self.configure(height=5*MARGIN,width=6*XSPACING2,bg='gray')
+        self.configure(height=5*MARGIN,width=6*XSPACING2)
         width=int(self['width'])
         self.makeButton(width//2-12*MARGIN, 'undo')
         self.makeButton(width//2-4*MARGIN, 'redo')
@@ -241,7 +241,21 @@ class View:
         self.grab(selection, k, event.x, event.y)
 
     def onDoubleClick(self, event):
-        pass
+        model = self.model
+        canvas = self.canvas
+        tag = [t for t in canvas.gettags('current') if t.startswith('code')][0]
+        code = tag[4:]             # code of the card clicked
+        for k,p in enumerate(model.tableau):
+            try:
+                if p[-1].code == code:
+                    break
+            except IndexError:
+                pass
+        else:    #loop else
+            return
+        if model.topToCell(k):
+            self.show()
+            self.automaticMoves()
     
     def dropTargets(self):
         piles = self.piles
@@ -286,7 +300,7 @@ class View:
         piles = self.piles
         model = self.model
         canvas = self.canvas   
-        if not model.moving():
+        if model.selection == [ ]:
             return
         x, y = event.x, event.y
         canvas.configure(cursor=DEFAULT_CURSOR)
@@ -312,6 +326,13 @@ class View:
         model.completeMove(dest)
         self.show()
         self.canvas.dtag('floating')
+        self.automaticMoves()
+            
+    def automaticMoves(self):
+        while self.model.automaticMove():
+            self.show()
+            self.canvas.update_idletasks()
+            time.sleep(.06)        
 
     def undo(self, event):
         self.model.undo()

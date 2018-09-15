@@ -14,16 +14,41 @@ import sys, os
 
 helpText = '''
 OBJECTIVE
-Spider is played with a deck of 52 cards.  The objective is to arrange each of the four suits in sequence from the Ace to the King on the foundations piles.   If all suits have been built on the foundations, the game is won.
+Free cell is played with a deck of 52 cards.\
+The objective is to arrange each of the four suits in sequence \
+from the Ace to the King on the foundations piles.\
+If all suits have been built on the foundations, the game is won.
 
 SETUP
-There are eight tableau piles.  The leftmost four initially have seven cards each, and the other initially have six cards each.   All cards are face up.  There are also four foundation piles and four free cells, initially empty.  
+There are eight tableau piles.\
+The leftmost four initially have seven cards each, and the others \
+initially have six cards each.   There are also four foundation piles \
+and four free cells, initially empty.  
 
 MOVING CARDS
-The cards in the free cells and the top cards of the tableau pile are available for play.  Cards in the foundation piles cannot be moved.  A card may be placed on top of a tableau pile whose top  card is one higher in rank and of the opposite color, so a red Jack may be moved on top of a black Queen, but not on top of a red Queen.An Ace can be moved to an empty foudation pile.  A card can be moved to an empty free cell, to an empty tableau pile, or to a foundation pile whose top card is of the same suit and one lower in rank.  According to the rules, only one card can be moved at a time, but this is tedious, so the programs allows moving multiple cards at once, if this can be accomplished by making use of empty free cells and tableau piles.
+The cards in the free cells and the top cards of the tableau piles \
+are available for play.  Cards in the foundation piles cannot be moved.
+  
+The tableau piles are built downward in alteranting colors, so a red Jack \
+may be placed on top of a black Queen, but not on top of a red \
+Queen.  An Ace can be moved to an empty foudation pile.
+  
+Any card can be moved to an empty free cell, to an empty tableau pile.
+
+The foundation piles are built upward by suit.
+   
+According to the rules, only one card can be moved at a time, but this is \
+tedious, so the programs allows moving multiple cards at once, if this can \
+be accomplished by making use of empty free cells and tableau piles.
 
 BUTTONS
-The "Undo" and Redo" buttons are self-explanatory.  The "Restart" button puts the game back to the beginning, but you can still redo all your moves.
+The "Undo" and Redo" buttons are self-explanatory.  \
+The "Restart" button puts the game back to the beginning, but you can \
+still redo all your moves. 
+
+DOUBLE-CLICK
+Double-clicking the top card of a tableau pile will move it to a free cell, \
+if there is one available.
 '''        
 class FreeCell:
     def __init__(self):
@@ -46,7 +71,7 @@ class FreeCell:
         top.title("Free Cell Help")
         f = tk.Frame(top)
         self.helpText.text = text = tk.Text(f, height=30, width = 80, wrap=tk.WORD)
-        text['font'] = ('helevetica', 12, 'normal')
+        text['font'] = ('helevetica', 14, 'normal')
         text['bg'] = '#ffef85'
         text['fg'] = '#8e773f'
         scrollY = tk.Scrollbar(f, orient=tk.VERTICAL, command=text.yview)
