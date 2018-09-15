@@ -148,31 +148,11 @@ class Card:
         self.color = 0 if suit in 'HD' else 1
         self.code =cardCode(rank, suit)
 
-    def goesOn(self, other):
-        '''
-        Can self be placed on other in a tableau pile?
-        '''
-        if self.color == other.color:
-            return False
-        answer = self.rank == other.rank-1 
-        return answer
-    
-    def follows(self, other):
-        return self.suit == other.suit and self.rank == other.rank+1
-
     def __repr__(self):
         return self.code
 
     def __str__(self):
         return  self.code
-
-    @staticmethod
-    def isSequential(seq):
-        '''
-        Are the cards in a descending sequence of alternating colors?
-        '''
-        answer =  all(map(lambda x, y: x.goesOn(y), seq[1:], seq))  
-        return answer
 
 class Model:
     '''
