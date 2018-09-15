@@ -6,7 +6,7 @@ The canvas widget is used for both view and controller.
 '''
 import sys, os, itertools, time
 import tkinter as tk
-from model import SUITNAMES, RANKNAMES, ALLRANKS, Card
+from model import SUIT_NAMES, RANK_NAMES, ALLRANKS, SUIT_SYMBOLS, Card
 
 # Constants determining the size and layout of cards and stacks.  
 
@@ -99,15 +99,14 @@ class View:
         canvas.bind('<B1-Motion>', self.drag)
         canvas.bind('<ButtonRelease-1>', self.onDrop)
 
-        suitSymobls = ('\u2660','\u2665','\u2666','\u2663') 
         for t in self.tableau:
             canvas.create_rectangle(t[0], t[1], t[0]+CARDWIDTH, t[1]+CARDHEIGHT, 
                                                     fill=PILEFILL, outline=PILEFILL)    
         for idx, f in enumerate(self.foundations):
             canvas.create_rectangle(f[0], f[1], f[0]+CARDWIDTH, f[1]+CARDHEIGHT, 
                                                     fill=PILEFILL, outline=PILEFILL)
-            canvas.create_text(f[0]+CARDWIDTH//2,f[1]+CARDHEIGHT//2, text=suitSymobls[idx], 
-                                            fill='khaki',font=SUIT_FONT)
+            canvas.create_text(f[0]+CARDWIDTH//2,f[1]+CARDHEIGHT//2, 
+                                            text=SUIT_SYMBOLS[idx], fill='khaki',font=SUIT_FONT)
         for c in self.cells:
             canvas.create_rectangle(c[0], c[1], c[0]+CARDWIDTH, c[1]+CARDHEIGHT, 
                                                     fill=PILEFILL, outline=PILEFILL)
@@ -124,8 +123,8 @@ class View:
     def loadImages(self):
         PhotoImage = tk.PhotoImage
         cardDir = os.path.join(os.path.dirname(sys.argv[0]), 'cards') 
-        for suit, rank in itertools.product(SUITNAMES, ALLRANKS):
-            face = PhotoImage(file = os.path.join(cardDir, RANKNAMES[rank]+suit+'.gif'))               
+        for suit, rank in itertools.product(SUIT_NAMES, ALLRANKS):
+            face = PhotoImage(file = os.path.join(cardDir, RANK_NAMES[rank]+suit+'.gif'))               
             imageDict[rank, suit] = face
 
     def createCards(self):

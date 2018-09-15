@@ -15,8 +15,9 @@ ALLRANKS = range(1, 14)      # one more than the highest value
 # dummy element at index 0 so it can be indexed directly with the card
 # value.
 
-SUITNAMES = 'SHDC'
-RANKNAMES = ' A23456789TJQK'
+SUIT_NAMES = 'SHDC'
+RANK_NAMES = ' A23456789TJQK'
+SUIT_SYMBOLS= ('\u2660','\u2665','\u2666','\u2663') 
 
 class Stack(list):
     '''
@@ -136,7 +137,7 @@ class FoundationPile(Stack):
         return card.rank-1 == self[-1].rank
 
 def cardCode(rank, suit):
-    return RANKNAMES[rank]+suit
+    return RANK_NAMES[rank]+suit
 
 class Card:
     '''
@@ -152,7 +153,9 @@ class Card:
         return self.code
 
     def __str__(self):
-        return  self.code
+        r = RANK_NAMES[self.rank]
+        s = SUIT_SYMBOLS[SUIT_NAMES.index(self.suit)]
+        return r+s
 
 class Model:
     '''
@@ -173,7 +176,7 @@ class Model:
         self.foundations = []
         self.cells = [ ] 
         for k in range(4):
-            self.foundations.append(FoundationPile(SUITNAMES[k]))
+            self.foundations.append(FoundationPile(SUIT_NAMES[k]))
         self.tableau = []
         for k in range(8):
             self.tableau.append(TableauPile()) 
@@ -193,7 +196,7 @@ class Model:
         random.shuffle(self.deck)
 
     def createCards(self):
-        for rank, suit in itertools.product(ALLRANKS, SUITNAMES):
+        for rank, suit in itertools.product(ALLRANKS, SUIT_NAMES):
             self.deck.append(Card(rank, suit))
 
     def deal(self):
@@ -323,7 +326,7 @@ class Model:
             source = piles[idx]
             if source.isEmpty(): continue
             card = source[-1]
-            target =piles[ 12 + SUITNAMES.index(card.suit)]
+            target =piles[ 12 + SUIT_NAMES.index(card.suit)]
             if card.rank == ACE:
                 add = True
             elif card.rank == 2:
