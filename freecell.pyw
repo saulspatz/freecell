@@ -8,8 +8,12 @@ challenging, but I'll try iterative deepening.
 '''
 import model
 from view import View
-import tkinter as tk
-from tkinter.messagebox import showerror, showinfo, askokcancel
+try:
+    import tkinter as tk
+    from tkinter.messagebox import showerror, showinfo, askokcancel
+except ImportError:
+    import Tkinter as tk
+    from tkMessageBox import showerror, showinfo, askokcancel
 import sys, os
 
 helpText = '''

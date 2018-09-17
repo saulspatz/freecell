@@ -1,6 +1,6 @@
 # model.py Model for free cell solitaire
 
-import random, itertools
+import random, itertools,sys
 from collections import namedtuple
 
 UndoRecord = namedtuple('Undorecord', 'source target cards auto'.split())
@@ -17,7 +17,13 @@ ALLRANKS = range(1, 14)      # one more than the highest value
 
 SUIT_NAMES = 'SHDC'
 RANK_NAMES = ' A23456789TJQK'
-SUIT_SYMBOLS= ('\u2660','\u2665','\u2666','\u2663') 
+if sys.version_info.major == 3:
+    SUIT_SYMBOLS = ('\u2660','\u2665','\u2666','\u2663') 
+else:
+    SUIT_SYMBOLS =(u'\u2660'.encode('utf-8'),
+                                    u'\u2665'.encode('utf-8'),
+                                    u'\u2666'.encode('utf-8'),
+                                    u'\u2663'.encode('utf-8'))
 
 class Stack(list):
     '''
@@ -30,7 +36,7 @@ class Stack(list):
     '''
     def __init__(self):
         # Bottom card is self[0]; top is self[-1]
-        super().__init__()
+        list.__init__(self)
 
     def add(self, card):
         self.append(card)
@@ -67,7 +73,7 @@ class Stack(list):
 
 class TableauPile(Stack):
     def __init__(self):
-        super().__init__()
+        Stack.__init__(self)
         
     def canSelect(self, idx):
         if idx >= len(self):
@@ -100,7 +106,7 @@ class TableauPile(Stack):
           
 class Cell(Stack):
     def __init__(self):
-        super().__init__()
+        Stack.__init__(self)
     
     def canSelect(self, idx):
         return True
@@ -115,11 +121,8 @@ class FoundationPile(Stack):
     No cards can be selected.
     '''
     def __init__(self, suit):
-        super().__init__()
+        Stack.__init__(self)
         self.suit=suit
-
-    def add(self, card):
-        super().add(card)
         
     def canSelect(self, idx):
         return False

@@ -5,7 +5,10 @@ The view knows about the model, but not vice versa
 The canvas widget is used for both view and controller.
 '''
 import sys, os, itertools, time
-import tkinter as tk
+try:
+    import tkinter as tk
+except ImportError:
+    import Tkinter as tk
 from model import SUIT_NAMES, RANK_NAMES, ALLRANKS, SUIT_SYMBOLS, Card
 
 # Constants determining the size and layout of cards and stacks.  
@@ -34,7 +37,7 @@ imageDict = {}   # hang on to images, or they may disappear!
 
 class ButtonBar(tk.Canvas):
     def __init__(self, parent):
-        super().__init__(parent, bg=BACKGROUND, bd=0, highlightthickness=0)
+        tk.Canvas.__init__(self,parent, bg=BACKGROUND, bd=0, highlightthickness=0)
         self.configure(height=5*MARGIN,width=6*XSPACING2)
         width=int(self['width'])
         self.makeButton(width//2-12*MARGIN, 'undo')
