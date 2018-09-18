@@ -125,7 +125,7 @@ class View:
 
     def loadImages(self):
         PhotoImage = tk.PhotoImage
-        cardDir = os.path.join(os.path.dirname(sys.argv[0]), 'cards') 
+        cardDir = os.path.join(os.path.dirname(sys.argv[0]), 'cards/small') 
         for suit, rank in itertools.product(SUIT_NAMES, ALLRANKS):
             face = PhotoImage(file = os.path.join(cardDir, RANK_NAMES[rank]+suit+'.gif'))               
             imageDict[rank, suit] = face
