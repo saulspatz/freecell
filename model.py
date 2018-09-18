@@ -1,4 +1,5 @@
-# model.py Model for free cell solitaire
+# model.py Model for free cell solitaire, hard free cell and Baker's game
+
 
 import random, itertools,sys
 from collections import namedtuple
@@ -10,6 +11,9 @@ JACK = 11
 QUEEN = 12
 KING = 13
 ALLRANKS = range(1, 14)      # one more than the highest value
+FREE_CELL = 0
+HARD_FREE_CELL = 1
+BAKERS_GAME = 2
 
 # RANKNAMES is a list that maps a rank to a string.  It contains a
 # dummy element at index 0 so it can be indexed directly with the card
@@ -76,32 +80,45 @@ class TableauPile(Stack):
         Stack.__init__(self)
         
     def canSelect(self, idx):
+        game = model.gameType.get()
         if idx >= len(self):
             return False
         for card1, card2 in zip(self[idx:], self[idx+1:]):
-            if card1.color == card2.color:
-                return False
             if card2.rank != card1.rank-1:
-                return False
+                return False            
+            if game != BAKERS_GAME: 
+                if card1.color == card2.color:
+                    return False
+            else:
+                if card1.suit != card2.suit:
+                    return False
         return True
     
     def canDrop(self):
         '''Can the moving cards be dropped here?'''
+        game = model.gameType.get()
         source = model.selection
         tableau = model.tableau
         cells = model.cells
         freeCells = len([c for c in cells if c.isEmpty()])
-        freeTableau = len([t for t in tableau if t.isEmpty()])
-        if self.isEmpty(): freeTableau -= 1
-        maxMove = (1+freeCells)*2**freeTableau
+        if game == HARD_FREE_CELL:
+            maxMove = 1+freeCells 
+        else:
+            freeTableau = len([t for t in tableau if t.isEmpty()])
+            if self.isEmpty(): freeTableau -= 1
+            maxMove = (1+freeCells)*2**freeTableau
         if len(source)> maxMove:
             return False
         if self.isEmpty():
-            return True
+            return True if game != HARD_FREE_CELL else source[0].rank == KING
         lower = source[0]
         upper = self[-1]
-        if lower.color == upper.color:
-            return False
+        if game != BAKERS_GAME:
+            if lower.color == upper.color:
+                return False
+        else:
+            if lower.suit != upper.suit:
+                return False
         return lower.rank == upper.rank-1        
           
 class Cell(Stack):
@@ -320,6 +337,7 @@ class Model:
             self.undo()
 
     def automaticMove(self):
+        game = self.gameType.get()
         piles = self.piles
         foundations = self.foundations
         reds = piles[13], piles[14]     # foundations
@@ -337,11 +355,14 @@ class Model:
             else:
                 if len(target) != card.rank-1: 
                     continue
-                stacks = blacks if card.suit in 'HD' else reds
-                if all(len(stack)>=card.rank-1 for stack in stacks):
+                if game == BAKERS_GAME:
                     add = True
-                elif all(len(fnd)>=card.rank-2 for fnd in foundations):
-                    add = True
+                else:
+                    stacks = blacks if card.suit in 'HD' else reds
+                    if all(len(stack)>=card.rank-1 for stack in stacks):
+                        add = True
+                    elif all(len(fnd)>=card.rank-2 for fnd in foundations):
+                        add = True
             if add:
                 target.add(source.pop())
                 self.undoStack.append(UndoRecord(idx,piles.index(target),1,True))
