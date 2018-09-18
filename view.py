@@ -12,15 +12,19 @@ except ImportError:
 from model import SUIT_NAMES, RANK_NAMES, ALLRANKS, SUIT_SYMBOLS, Card
 
 # Constants determining the size and layout of cards and stacks.  
+#CARDWIDTH = 75   Constants used with small deck
+#CARDHEIGHT = 113
+#OFFSET = 20
 
-CARDWIDTH = 75
-CARDHEIGHT = 113
+CARDWIDTH = 85
+CARDHEIGHT = 128
+OFFSET = 23
 MARGIN = 10
 XSPACING1 = CARDWIDTH + 2*MARGIN
 XSPACING2 = CARDWIDTH + 3*MARGIN
 FILLER = 7*MARGIN
 YSPACING = CARDHEIGHT + 4*MARGIN
-OFFSET = 20
+
 
 BACKGROUND = '#070'
 PILEFILL = 'OliveDrab4' # fill color of piles
@@ -62,7 +66,7 @@ class View:
         self.model =  parent.model
         self.root = root = tk.Tk()
         root.protocol('WM_DELETE_WINDOW', quit)
-        width = 4*MARGIN+8*XSPACING2
+        width = 5*MARGIN+8*XSPACING2
         self.root.wm_geometry('%dx850-10+10'%width)
         root.title("Free Cell Solitaire")
 
@@ -73,7 +77,7 @@ class View:
         self.tableau = []           # NW corners of the tableau piles
         self.foundations = []   # NW corners of the foundation piles
         self.cells=[]                 #NW corners of the free cells
-        x = 2*MARGIN
+        x = 4*MARGIN
         y = 6* MARGIN
         for k in range(4):
             self.cells.append((x, y))
@@ -83,7 +87,7 @@ class View:
             self.foundations.append((x, y))
             x += XSPACING1
         y += YSPACING
-        x = 2*MARGIN
+        x = 4*MARGIN
         for k in range(8):
             self.tableau.append((x, y)) 
             x += XSPACING2 
@@ -125,7 +129,7 @@ class View:
 
     def loadImages(self):
         PhotoImage = tk.PhotoImage
-        cardDir = os.path.join(os.path.dirname(sys.argv[0]), 'cards/small') 
+        cardDir = os.path.join(os.path.dirname(sys.argv[0]), 'cards/large') 
         for suit, rank in itertools.product(SUIT_NAMES, ALLRANKS):
             face = PhotoImage(file = os.path.join(cardDir, RANK_NAMES[rank]+suit+'.gif'))               
             imageDict[rank, suit] = face
