@@ -17,9 +17,13 @@ except ImportError:
 import sys, os
 
 helpText = '''
+This program implements three variants related solitaire (patience) games: \
+free cell, hard free cell, and Baker's game.  The games differ only \
+in the rules for moving cards.
+
 OBJECTIVE
-Free cell is played with a deck of 52 cards.\
-The objective is to arrange each of the four suits in sequence \
+All three games  are played with a deck of 52 cards.\
+The objective in each game is to arrange each of the four suits in sequence \
 from the Ace to the King on the foundations piles.\
 If all suits have been built on the foundations, the game is won.
 
@@ -33,17 +37,27 @@ MOVING CARDS
 The cards in the free cells and the top cards of the tableau piles \
 are available for play.  Cards in the foundation piles cannot be moved.
   
-The tableau piles are built downward in alteranting colors, so a red Jack \
-may be placed on top of a black Queen, but not on top of a red \
-Queen.  An Ace can be moved to an empty foudation pile.
-  
-Any card can be moved to an empty free cell, to an empty tableau pile.
+The tableau piles in free cell and hard free cell  are built downward in alternating \
+colors, so a red Jack may be placed on top of a black Queen, but not on top of \
+a red Queen.  In Baker's game, the cards are built downward by suit, so the |
+Jack of Spades may be placed on top of the Queen of Spades, but on no other Queen.
 
-The foundation piles are built upward by suit.
+An Ace can be moved to an empty foundation pile  in all the games.
+  
+Any card can be moved to an empty free cell. 
+
+In free cell and Baker's game, any card may be moved to an empty tableau pile. \
+but in hard free cell, only a King may be played to an empty foundation pile.
    
 According to the rules, only one card can be moved at a time, but this is \
 tedious, so the programs allows moving multiple cards at once, if this can \
 be accomplished by making use of empty free cells and tableau piles.
+
+As the play proceeds, there are situations when there is no point in not playing \
+some card to the foundation piles.  For example, an Ace should always be played \
+to the foundations, because it is of no use in the tableau or the cells.  The \
+program detects such situations and plays any such cards automatically, \
+except at the very beginning of the game.
 
 BUTTONS
 The "Undo" and Redo" buttons are self-explanatory.  \
@@ -94,6 +108,7 @@ class FreeCell:
 
     def makeMenu(self):
         top = self.view.menu
+        gameVar = self.model.gameType
 
         game = tk.Menu(top, tearoff=False)
         game.add_command(label='New', command=self.deal)
@@ -102,9 +117,9 @@ class FreeCell:
         top.add_cascade(label='Game', menu=game)
         
         options = tk.Menu(top, tearoff=False)
-        options.add_radiobutton(label='Free Cell', variable=self.model.gameType, value=0)
-        options.add_radiobutton(label='Hard Free Cell',  variable=self.model.gameType, value=1)
-        options.add_radiobutton(label="Baker's Game",  variable=self.model.gameType, value=2)
+        options.add_radiobutton(label='Free Cell', variable=gameVar, value=0)
+        options.add_radiobutton(label='Hard Free Cell',  variable=gameVar, value=1)
+        options.add_radiobutton(label="Baker's Game",  variable=gameVar, value=2)
         top.add_cascade(label='Options', menu=options)        
 
     def notdone(self):
