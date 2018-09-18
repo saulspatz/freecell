@@ -59,7 +59,10 @@ class FreeCell:
         self.model = model.model
         self.view = View(self, self.quit, width=1000, height=1000, scrollregion=(0, 0, 950, 3000) )
         self.makeHelp()
+        self.model.gameType = tk.IntVar()
+        self.model.gameType.set(0)
         self.makeMenu()
+        self.model.gameType.trace('w', self.optionChanged)       
         self.view.start()      #  start the event loop
 
     def deal(self):
@@ -97,6 +100,12 @@ class FreeCell:
         game.add_command(label='Help', command = self.showHelp)  
         game.add_command(label='Quit', command=self.quit)
         top.add_cascade(label='Game', menu=game)
+        
+        options = tk.Menu(top, tearoff=False)
+        options.add_radiobutton(label='Free Cell', variable=self.model.gameType, value=0)
+        options.add_radiobutton(label='Hard Free Cell',  variable=self.model.gameType, value=1)
+        options.add_radiobutton(label="Baker's Game",  variable=self.model.gameType, value=2)
+        top.add_cascade(label='Options', menu=options)        
 
     def notdone(self):
         showerror('Not implemented', 'Not yet available') 
@@ -104,6 +113,9 @@ class FreeCell:
     def showHelp(self):
         self.helpText.deiconify()
         self.helpText.text.see('1.0')  
+        
+    def optionChanged(self, *args):
+        print(self.model.gameType.get()) 
 
     def quit(self):
         self.view.root.quit()
