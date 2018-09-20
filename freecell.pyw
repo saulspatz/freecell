@@ -130,8 +130,13 @@ class FreeCell:
         self.helpText.text.see('1.0')  
         
     def optionChanged(self, *args):
-        print(self.model.gameType.get()) 
-
+        root = self.view.root
+        game = self.model.gameType.get()
+        titles = ['Free Cell Solitaire',
+                       'Hard Feee Cell Solitaire',
+                       "Baker's Game"]
+        root.title(titles[game])
+            
     def quit(self):
         self.view.root.quit()
 
