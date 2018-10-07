@@ -70,6 +70,9 @@ if there is one available.
 '''        
 class FreeCell:
     def __init__(self):
+        cwd = os.getcwd()
+        progDir= os.path.dirname(sys.argv[0])
+        self.runDir = os.path.join(cwd, progDir)         
         self.model = model.model
         self.view = View(self, self.quit, width=1000, height=1000, scrollregion=(0, 0, 950, 3000) )
         self.makeHelp()
@@ -122,22 +125,24 @@ class FreeCell:
         options.add_radiobutton(label="Baker's Game",  variable=gameVar, value=2)
         top.add_cascade(label='Options', menu=options)        
 
-    def notdone(self):
-        showerror('Not implemented', 'Not yet available') 
-
     def showHelp(self):
         self.helpText.deiconify()
         self.helpText.text.see('1.0')  
         
     def optionChanged(self, *args):
         root = self.view.root
-        game = self.model.gameType.get()
+        model = self.model
+        game = model.gameType.get()
         titles = ['Free Cell Solitaire',
                        'Hard Feee Cell Solitaire',
                        "Baker's Game"]
         root.title(titles[game])
             
     def quit(self):
+        try:
+            self.model.solverProc.kill()
+        except:
+            pass
         self.view.root.quit()
 
 if __name__ == "__main__":
