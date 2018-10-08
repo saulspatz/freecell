@@ -3,6 +3,7 @@
 
 import random, itertools,sys
 from collections import namedtuple
+import re, os, subprocess
 
 UndoRecord = namedtuple('Undorecord', 'source target cards auto'.split())
 
@@ -14,6 +15,16 @@ ALLRANKS = range(1, 14)      # one more than the highest value
 FREE_CELL = 0
 HARD_FREE_CELL = 1
 BAKERS_GAME = 2
+
+# presets for the solver
+presets = ['freecell', 'forecell', 'bakers_game']
+
+# patterns to parse solver output
+movePattern = re.compile(r'(^Move.*)', re.MULTILINE)
+freePattern = re.compile(r'^Freecells:(.*)$',re.MULTILINE)
+stack2stackPattern = re.compile(r'.*?([0-9]+) .*? ([0-9]+).*?([0-9]+)')
+stackCellPattern=re.compile(r'.*?(cell|stack).*?([0-9]+).*?([0-9]+)')
+foundationPattern = re.compile(r'.*?(cell|stack).*?([0-9])+')
 
 # RANKNAMES is a list that maps a rank to a string.  It contains a
 # dummy element at index 0 so it can be indexed directly with the card
@@ -181,7 +192,9 @@ class Model:
     '''
     The cards are all in self.deck, and are copied into the tableau piles
     All entries on the undo and redo stacks are in the form (source, target, n, f), where
-        tableau piles are numbered 0 to 9 and foundations 10 to 17, 
+        -- tableau piles are numbered 0 to 7, 
+        -- free cells are numbered 8 to 11, 
+        -- and foundations 12 to 15, 
         n is the number of cards moved, 
         f is a boolean indicating whether or not the top card of the source stack is flipped,
         except that the entry (0, 0, 10, 0) connotes dealing a row of cards. 
@@ -192,6 +205,7 @@ class Model:
         self.selection = []
         self.undoStack = []
         self.redoStack = []
+        self.solution = []
         self.createCards()
         self.foundations = []
         self.cells = [ ] 
@@ -204,27 +218,32 @@ class Model:
             self.cells.append(Cell())
         self.grabPiles = self.tableau + self.cells
         self.piles = self.grabPiles + self.foundations
-        self.deal()
 
     def shuffle(self):
-        for f in self.foundations:
-            f.clear()
-        for w in self.tableau:
-            w.clear()
-        for c in self.cells:
-            c.clear()
         random.shuffle(self.deck)
+        self.solved = False
+        self.status = None
+        self.solution = []
 
     def createCards(self):
         for rank, suit in itertools.product(ALLRANKS, SUIT_NAMES):
             self.deck.append(Card(rank, suit))
 
-    def deal(self):
-        self.shuffle()
+    def deal(self, shuffle=True):
+        if shuffle:
+            self.shuffle()
+        for p in self.piles:
+            p.clear()
         for n, card in enumerate(self.deck):
             self.tableau[n%8].add(card)
         self.undoStack = []
-        self.redoStack = []    
+        self.redoStack = [] 
+        
+        # *** SIDE EFFECTS  ***
+        # solve will set self.solverProc, self.board, 
+        # self.status, and self.solution    
+        if shuffle:
+            self.solve()
 
     def gameWon(self):
         '''
@@ -307,11 +326,17 @@ class Model:
         ''''
         Pop a record off the redo stack and redo the corresponding move.
         Then pop and redo any automatic moves.
+        If a move to the foundations has been set by the solver, the target
+        will be shown as -1, as we have to figure out the actual pile.
         ''' 
         def replay():
             (s, t, n, a) = record = redoStack.pop()
+            source = piles[s]
+            if (t==-1):
+                suit = source[-1].suit
+                t = 12+ 'SHDC'.index(suit)
+                record = UndoRecord(s, t, n, a) 
             undoStack.append(record)
-            source = piles[s] 
             target = piles[t]
             target.extend(source[-n:])
             source[:] = source[:-n]             
@@ -368,5 +393,88 @@ class Model:
                 self.undoStack.append(UndoRecord(idx,piles.index(target),1,True))
                 break
         return add
-                          
+    
+    def boardString(self):
+        board = 'Foundations: H-0 C-0 D-0 S-0\nFreecells:\n'
+        for t in self.tableau:
+            board += ':'
+            for card in t:
+                board += ' %s'%card.code
+            board += '\n'
+        return board
+        
+    def solve(self):
+        try:
+            self.solverProc.kill()
+        except:
+            pass
+        self.board = self.boardString()
+        cmd = os.path.join(self.parent.runDir,'fc-solve')
+        args = 'echo '+'"'+self.board+'"' ' | ' +cmd+ ' '
+        game = self.gameType.get()
+        args += '--game %s '%presets[game]
+        args += '-p -t  -m -sel'
+        self.solverProc = subprocess.Popen(args, universal_newlines=True, 
+                                           stdout=subprocess.PIPE, shell=True)  
+        
+    def parseSolution(self, text):
+        self.solution.clear()
+        soln = self.solution
+        moves=movePattern.finditer(text)
+        for move in moves:
+            match = move.group(0)
+            if match.count('stack')==2:
+                m = stack2stackPattern.search(match)
+                g = m.group
+                soln.append(UndoRecord(int(g(2)),int(g(3)),int(g(1)),False))
+            elif 'foundation' not in match:
+                m = stackCellPattern.search(match)
+                if m.group(1) == 'stack':
+                    s = int(m.group(2))
+                    t = 8+int(m.group(3))
+                else:
+                    s = 8+int(m.group(2))
+                    t = int(m.group(3))
+                soln.append(UndoRecord(s,t,1,False))
+            else:
+                # move is to foundations
+                m = foundationPattern.search(match)
+                s = int(m.group(2)) if m.group(1)=='stack' else 8+int(m.group(2))
+                soln.append(UndoRecord(s,-1,1,False))        
+        
+    def readSolution(self):
+        proc = self.solverProc
+        status = proc.poll()
+        if status == None:
+            return 'running'
+        if not self.solved:
+            self.solved = True
+            text= proc.stdout.read() 
+            if "Iterations count exceeded" in text:
+                self.status= 'intractable'
+            elif "I could not solve this game" in text:
+                self.status = 'unsolved'
+            else:
+                self.status = 'solved'
+                self.parseSolution(text)       # sets self.solution
+        if self.status == 'solved':
+            self.deal(False)
+            self.redoStack = list(reversed(self.solution)) 
+        return self.status
+    
+    def saveGame(self):
+        gameDirs = ['freecell','bakersGame','hardFreecell' ]
+        gaemDir = gamesDirs[self.gameType.get()]
+        dirname = os.path.join(self.parent.runDir,'savedGames', gameDir)
+        length = 1+len([f for f in os.listdir(dirname) if f.startswith('board')])
+        name = 'board%d.txt'%length
+        filename = os.path.join(dirname, name)
+        deck = self.deck
+        with open(filename, 'w') as fout:
+            fout.write('Foundations: H-0 C-0 D-0 S-0\nFreecells:\n')
+            for c in range(8):
+                fout.write(':')
+                for idx in range(c, 52, 8):
+                    fout.write('%s '%(deck[idx].code))
+                fout.write('\n')               
 model = Model()

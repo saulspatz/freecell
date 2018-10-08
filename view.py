@@ -129,6 +129,7 @@ class View:
         self.show()
 
     def start(self):
+        self.show()
         self.root.mainloop()
 
     def loadImages(self):
@@ -368,6 +369,7 @@ class View:
                 model.saveGame()
         else:
             messagebox.showinfo('Solved','Press redo to see solution', parent=self.canvas) 
+            self.enableRedo()
             self.show()    
 
     def disableRedo(self):

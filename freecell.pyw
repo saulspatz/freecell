@@ -70,14 +70,17 @@ if there is one available.
 '''        
 class FreeCell:
     def __init__(self):
+        os.environ['FREECELL_SOLVER_QUIET']='1'
         cwd = os.getcwd()
         progDir= os.path.dirname(sys.argv[0])
         self.runDir = os.path.join(cwd, progDir)         
         self.model = model.model
+        self.model.parent = self
         self.view = View(self, self.quit, width=1000, height=1000, scrollregion=(0, 0, 950, 3000) )
-        self.makeHelp()
         self.model.gameType = tk.IntVar()
-        self.model.gameType.set(0)
+        self.model.gameType.set(0)        
+        self.model.deal()        
+        self.makeHelp()
         self.makeMenu()
         self.model.gameType.trace('w', self.optionChanged)       
         self.view.start()      #  start the event loop
