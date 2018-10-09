@@ -1,4 +1,4 @@
-# model.py Model for free cell solitaire, hard free cell and Baker's game
+# model.py Model for freecell solitaire, forecell and Baker's game
 
 
 import random, itertools,sys
@@ -12,8 +12,8 @@ JACK = 11
 QUEEN = 12
 KING = 13
 ALLRANKS = range(1, 14)      # one more than the highest value
-FREE_CELL = 0
-HARD_FREE_CELL = 1
+FREECELL = 0
+FORECELL = 1
 BAKERS_GAME = 2
 
 # presets for the solver
@@ -112,7 +112,7 @@ class TableauPile(Stack):
         tableau = model.tableau
         cells = model.cells
         freeCells = len([c for c in cells if c.isEmpty()])
-        if game == HARD_FREE_CELL:
+        if game == FORECELL:
             maxMove = 1+freeCells 
         else:
             freeTableau = len([t for t in tableau if t.isEmpty()])
@@ -121,7 +121,7 @@ class TableauPile(Stack):
         if len(source)> maxMove:
             return False
         if self.isEmpty():
-            return True if game != HARD_FREE_CELL else source[0].rank == KING
+            return True if game != FORECELL else source[0].rank == KING
         lower = source[0]
         upper = self[-1]
         if game != BAKERS_GAME:
@@ -464,7 +464,7 @@ class Model:
         return self.status
     
     def saveGame(self):
-        gameDirs = ['freecell','bakersGame','hardFreecell' ]
+        gameDirs = ['freecell','bakersGame','forecell' ]
         gameDir = gameDirs[self.gameType]
         dirname = os.path.join(self.parent.runDir,'savedGames', gameDir)
         length = 1+len([f for f in os.listdir(dirname) if f.startswith('board')])

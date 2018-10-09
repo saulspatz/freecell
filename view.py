@@ -1,6 +1,6 @@
 # view.py
 '''
-The visual interface for free cell solitaire.
+The visual interface for freecell solitaire.
 The view knows about the model, but not vice versa
 The canvas widget is used for both view and controller.
 '''
@@ -65,13 +65,12 @@ class View:
     '''
     def __init__(self, parent, quit, **kwargs):
         # quit is function to call when main window is closed
-        self.parent = parent          # parent is the Free Cell application
+        self.parent = parent          # parent is the FreeCell application
         self.model =  parent.model
         self.root = root = tk.Tk()
         root.protocol('WM_DELETE_WINDOW', quit)
         width = 5*MARGIN+8*XSPACING2
         self.root.wm_geometry('%dx850-10+10'%width)
-        root.title("Free Cell Solitaire")
 
         root.minsize(width=width, height=500)
         root.maxsize(width=width, height=2500)
@@ -206,8 +205,8 @@ class View:
             canvas.tag_raise(tag)
             
     def showTitle(self):
-        titles = ['Free Cell Solitaire',
-                       'Hard Feee Cell Solitaire',
+        titles = ['Freecell Solitaire',
+                       'Forcell Solitaire',
                        "Baker's Game"] 
         game = self.parent.gameType.get()
         self.root.title(titles[game])

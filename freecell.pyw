@@ -1,10 +1,9 @@
 # freecell.pyw
 
 '''
-Free cell solitaire.  I wrote this because the games I find online have various deficiencies. 
-The cards are too small, and they don't leave enough space between the free cells
-and the foundation piles.  Also, they don't include solvers.  A free cell solver is
-challenging, but I'll try iterative deepening.
+Freecell solitaire.  I wrote this because the games I find online have various deficiencies. 
+The cards are too small, and they don't leave enough space between the freecells
+and the foundation piles.  Also, they don't include solvers. 
 '''
 import model
 from view import View
@@ -18,7 +17,7 @@ import sys, os
 
 helpText = '''
 This program implements three variants related solitaire (patience) games: \
-free cell, hard free cell, and Baker's game.  The games differ only \
+freecell, forecell, and Baker's game.  The games differ only \
 in the rules for moving cards.
 
 OBJECTIVE
@@ -37,7 +36,7 @@ MOVING CARDS
 The cards in the free cells and the top cards of the tableau piles \
 are available for play.  Cards in the foundation piles cannot be moved.
   
-The tableau piles in free cell and hard free cell  are built downward in alternating \
+The tableau piles in freecell and forecell  are built downward in alternating \
 colors, so a red Jack may be placed on top of a black Queen, but not on top of \
 a red Queen.  In Baker's game, the cards are built downward by suit, so the |
 Jack of Spades may be placed on top of the Queen of Spades, but on no other Queen.
@@ -46,8 +45,8 @@ An Ace can be moved to an empty foundation pile  in all the games.
   
 Any card can be moved to an empty free cell. 
 
-In free cell and Baker's game, any card may be moved to an empty tableau pile. \
-but in hard free cell, only a King may be played to an empty foundation pile.
+In freecell and Baker's game, any card may be moved to an empty tableau pile. \
+but in forecell, only a King may be played to an empty foundation pile.
    
 According to the rules, only one card can be moved at a time, but this is \
 tedious, so the programs allows moving multiple cards at once, if this can \
@@ -94,7 +93,7 @@ class FreeCell:
         top.transient(self.view.root)
         top.protocol("WM_DELETE_WINDOW", top.withdraw)
         top.withdraw()
-        top.title("Free Cell Help")
+        top.title("Solitaire Help")
         f = tk.Frame(top)
         self.helpText.text = text = tk.Text(f, height=30, width = 80, wrap=tk.WORD)
         text['font'] = ('helevetica', 14, 'normal')
@@ -122,8 +121,8 @@ class FreeCell:
         top.add_cascade(label='Game', menu=game)
         
         options = tk.Menu(top, tearoff=False)
-        options.add_radiobutton(label='Free Cell', variable=gameVar, value=0)
-        options.add_radiobutton(label='Hard Free Cell',  variable=gameVar, value=1)
+        options.add_radiobutton(label='Freecell', variable=gameVar, value=0)
+        options.add_radiobutton(label='Forecell',  variable=gameVar, value=1)
         options.add_radiobutton(label="Baker's Game",  variable=gameVar, value=2)
         top.add_cascade(label='Options', menu=options)        
 
@@ -133,8 +132,8 @@ class FreeCell:
         
     def optionChanged(self, *args):
         model = self.model
-        titles = ['Free Cell Solitaire',
-                       'Hard Feee Cell Solitaire',
+        titles = ['Freecell Solitaire',
+                       'Forecell Solitaire',
                        "Baker's Game"]        
         game = model.gameType
         title = titles[game]
