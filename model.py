@@ -465,7 +465,7 @@ class Model:
     
     def saveGame(self):
         gameDirs = ['freecell','bakersGame','hardFreecell' ]
-        gameDir = gamesDirs[self.gameType]
+        gameDir = gameDirs[self.gameType]
         dirname = os.path.join(self.parent.runDir,'savedGames', gameDir)
         length = 1+len([f for f in os.listdir(dirname) if f.startswith('board')])
         name = 'board%d.txt'%length
