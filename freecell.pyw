@@ -77,12 +77,11 @@ class FreeCell:
         self.model = model.model
         self.model.parent = self
         self.view = View(self, self.quit, width=1000, height=1000, scrollregion=(0, 0, 950, 3000) )
-        self.model.gameType = tk.IntVar()
-        self.model.gameType.set(0)        
-        self.model.deal()        
+        self.gameType = tk.IntVar()
+        self.gameType.set(0)            
         self.makeHelp()
         self.makeMenu()
-        self.model.gameType.trace('w', self.optionChanged)       
+        self.gameType.trace('w', self.optionChanged)       
         self.view.start()      #  start the event loop
 
     def deal(self):
@@ -114,7 +113,7 @@ class FreeCell:
 
     def makeMenu(self):
         top = self.view.menu
-        gameVar = self.model.gameType
+        gameVar = self.gameType
 
         game = tk.Menu(top, tearoff=False)
         game.add_command(label='New', command=self.deal)
@@ -133,13 +132,14 @@ class FreeCell:
         self.helpText.text.see('1.0')  
         
     def optionChanged(self, *args):
-        root = self.view.root
         model = self.model
-        game = model.gameType.get()
         titles = ['Free Cell Solitaire',
                        'Hard Feee Cell Solitaire',
-                       "Baker's Game"]
-        root.title(titles[game])
+                       "Baker's Game"]        
+        game = model.gameType
+        title = titles[game]
+        showinfo(title, 'Game change will take effect next deal', 
+                        parent=self.view.canvas)
             
     def quit(self):
         try:

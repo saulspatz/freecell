@@ -91,7 +91,7 @@ class TableauPile(Stack):
         Stack.__init__(self)
         
     def canSelect(self, idx):
-        game = model.gameType.get()
+        game = model.gameType
         if idx >= len(self):
             return False
         for card1, card2 in zip(self[idx:], self[idx+1:]):
@@ -107,7 +107,7 @@ class TableauPile(Stack):
     
     def canDrop(self):
         '''Can the moving cards be dropped here?'''
-        game = model.gameType.get()
+        game = model.gameType
         source = model.selection
         tableau = model.tableau
         cells = model.cells
@@ -220,6 +220,7 @@ class Model:
         self.piles = self.grabPiles + self.foundations
 
     def shuffle(self):
+        self.gameType = self.parent.gameType.get()
         random.shuffle(self.deck)
         self.solved = False
         self.status = None
@@ -362,7 +363,7 @@ class Model:
             self.undo()
 
     def automaticMove(self):
-        game = self.gameType.get()
+        game = self.gameType
         piles = self.piles
         foundations = self.foundations
         reds = piles[13], piles[14]     # foundations
@@ -411,7 +412,7 @@ class Model:
         self.board = self.boardString()
         cmd = os.path.join(self.parent.runDir,'fc-solve')
         args = 'echo '+'"'+self.board+'"' ' | ' +cmd+ ' '
-        game = self.gameType.get()
+        game = self.gameType
         args += '--game %s '%presets[game]
         args += '-p -t  -m -sel'
         self.solverProc = subprocess.Popen(args, universal_newlines=True, 
@@ -464,7 +465,7 @@ class Model:
     
     def saveGame(self):
         gameDirs = ['freecell','bakersGame','hardFreecell' ]
-        gaemDir = gamesDirs[self.gameType.get()]
+        gameDir = gamesDirs[self.gameType]
         dirname = os.path.join(self.parent.runDir,'savedGames', gameDir)
         length = 1+len([f for f in os.listdir(dirname) if f.startswith('board')])
         name = 'board%d.txt'%length

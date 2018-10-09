@@ -126,7 +126,6 @@ class View:
         self.buttons.tag_bind('redo', '<ButtonPress-1>', self.redo)
         self.buttons.tag_bind('restart', '<ButtonPress-1>', self.restart)
         self.buttons.tag_bind('solve', '<ButtonPress-1>', self.solve)
-        self.show()
 
     def start(self):
         self.show()
@@ -176,6 +175,7 @@ class View:
     def show(self):
         model = self.model
         canvas = self.canvas
+        self.showTitle()
         for k in range(8):
             self.showTableau(k)
         for k in range(4):
@@ -204,6 +204,13 @@ class View:
             canvas.itemconfigure(tag, image = imageDict[card.rank, card.suit])
             canvas.coords(tag,x,y)
             canvas.tag_raise(tag)
+            
+    def showTitle(self):
+        titles = ['Free Cell Solitaire',
+                       'Hard Feee Cell Solitaire',
+                       "Baker's Game"] 
+        game = self.parent.gameType.get()
+        self.root.title(titles[game])
 
     def grab(self, selection, k, mouseX, mouseY):
         '''
