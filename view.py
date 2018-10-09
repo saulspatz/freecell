@@ -50,7 +50,8 @@ class ButtonBar(tk.Canvas):
         self.makeButton(width//2-7*MARGIN, 'redo')
         self.makeButton(width//2+1*MARGIN, 'solve')
         self.makeButton(width//2+9*MARGIN, 'restart')
-        self.place(in_=parent, relx=.5,y=0,anchor=tk.N)    
+        self.place(in_=parent, relx=.5,y=0,anchor=tk.N)  
+        self.itemconfigure('solve', state=tk.HIDDEN)
 
     def makeButton(self, left, text):
         self.create_oval(left, MARGIN, left+6*MARGIN, 4*MARGIN, fill=BUTTON, outline=BUTTON, tag = text)
@@ -125,7 +126,7 @@ class View:
         self.buttons.tag_bind('redo', '<ButtonPress-1>', self.redo)
         self.buttons.tag_bind('restart', '<ButtonPress-1>', self.restart)
         self.buttons.tag_bind('solve', '<ButtonPress-1>', self.solve)
-
+        
     def start(self):
         self.show()
         self.root.mainloop()
@@ -188,7 +189,9 @@ class View:
         if model.canRedo():
             self.enableRedo()
         else:
-            self.disableRedo()   
+            self.disableRedo()
+        if len(model.tableau[0]) != 0:
+            self.enableSolve()
 
     def dealUp(self):
         self.model.dealUp()
@@ -367,20 +370,20 @@ class View:
         model = self.model
         status = model.readSolution()
         if status == 'running':
-            messagebox.showinfo('Working On It','Try again in a little while',parent=self.canvas)
+            messagebox.showinfo('','Working On It\nTry again in a little while',parent=self.canvas)
         elif status == 'unsolved':
-            messagebox.showinfo('Unsolved','No solution',parent=self.canvas)
+            messagebox.showinfo('','Unsolved\nNo solution',parent=self.canvas)
         elif status == 'intractable':
-            if messagebox.askyesno('Intractable', 'Save game file?',parent=self.canvas):
+            if messagebox.askyesno('','Intractable\nSave game file?',parent=self.canvas):
                 model.saveGame()
         else:
-            messagebox.showinfo('Solved','Press redo to see solution', parent=self.canvas) 
+            messagebox.showinfo('','Solved\nPress Redo to see solution', parent=self.canvas) 
             self.enableRedo()
             self.show()    
 
     def disableRedo(self):
         self.buttons.itemconfigure('redo', state=tk.HIDDEN)
-
+        
     def disableUndo(self):
         for item in ('undo', 'restart'):
             self.buttons.itemconfigure(item, state=tk.HIDDEN)
@@ -391,6 +394,9 @@ class View:
     def enableUndo(self):
         for item in ('undo', 'restart'):
             self.buttons.itemconfigure(item, state=tk.NORMAL)
+            
+    def enableSolve(self):
+        self.buttons.itemconfigure('solve', state=tk.NORMAL)    
 
     def wm_delete_window(self):
         self.root.destroy()
