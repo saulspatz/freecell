@@ -209,7 +209,7 @@ class View:
             
     def showTitle(self):
         titles = ['Freecell Solitaire',
-                       'Forcell Solitaire',
+                       'Forecell Solitaire',
                        "Baker's Game"] 
         game = self.parent.gameType.get()
         self.root.title(titles[game])
