@@ -300,6 +300,7 @@ class Model:
             return False
         piles[k].append(piles[idx].pop())
         self.undoStack.append(UndoRecord(idx, k, 1, False))
+        self.redoStack.clear()
         return True
 
     def undo(self):
