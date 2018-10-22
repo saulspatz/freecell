@@ -376,8 +376,10 @@ class View:
         elif status == 'intractable':
             if messagebox.askyesno('','Intractable\nSave game file?',parent=self.canvas):
                 model.saveGame()
-        else:
+        elif messagebox.askyesno('', 'Solution exists\nDo you want to display it?', 
+                                 parent = self.canvas):
             messagebox.showinfo('','Solved\nPress Redo to see solution', parent=self.canvas) 
+            model.postSolution()
             self.enableRedo()
             self.show()    
 

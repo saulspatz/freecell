@@ -458,12 +458,13 @@ class Model:
                 self.status = 'unsolved'
             else:
                 self.status = 'solved'
-                self.parseSolution(text)       # sets self.solution
-        if self.status == 'solved':
-            self.deal(False)
-            self.redoStack = list(reversed(self.solution)) 
+                self.parseSolution(text)       # sets self.solution            
         return self.status
     
+    def postSolution(self):
+        self.deal(False)
+        self.redoStack = list(reversed(self.solution))         
+        
     def saveGame(self):
         gameDirs = ['freecell','bakersGame','forecell' ]
         gameDir = gameDirs[self.gameType]
