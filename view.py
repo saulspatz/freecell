@@ -350,9 +350,11 @@ class View:
             
     def automaticMoves(self):
         while self.model.automaticMove():
-            self.show()
-            self.canvas.update_idletasks()
-            time.sleep(.06)        
+            pass
+            #self.show()
+            #self.canvas.update_idletasks()
+            #time.sleep(.06)
+        self.show()
 
     def undo(self, event):
         self.model.undo()

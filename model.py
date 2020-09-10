@@ -388,8 +388,8 @@ class Model:
                     stacks = blacks if card.suit in 'HD' else reds
                     if all(len(stack)>=card.rank-1 for stack in stacks):
                         add = True
-                    elif all(len(fnd)>=card.rank-2 for fnd in foundations):
-                        add = True
+                    #elif all(len(fnd)>=card.rank-2 for fnd in foundations):
+                        #add = True
             if add:
                 target.add(source.pop())
                 self.undoStack.append(UndoRecord(idx,piles.index(target),1,True))
