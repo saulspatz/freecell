@@ -69,6 +69,8 @@ class View:
         self.parent = parent          # parent is the FreeCell application
         self.model =  parent.model
         self.root = root = tk.Tk()
+        if sys.platform == 'darwin':
+            root.createcommand('tk::mac::ReopenApplication', root.deiconify)
         root.protocol('WM_DELETE_WINDOW', quit)
         width = 5*MARGIN+8*XSPACING2
         self.root.wm_geometry('%dx850-10+10'%width)
@@ -350,10 +352,9 @@ class View:
             
     def automaticMoves(self):
         while self.model.automaticMove():
-            pass
-            #self.show()
-            #self.canvas.update_idletasks()
-            #time.sleep(.06)
+            self.show()
+            self.canvas.update()  # update_idletasks doesn't work on Mac
+            time.sleep(.06)
         self.show()
 
     def undo(self, event):
