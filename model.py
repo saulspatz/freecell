@@ -1,6 +1,5 @@
 # model.py Model for freecell solitaire, forecell and Baker's game
 
-
 import random, itertools,sys
 from collections import namedtuple
 import re, os, subprocess
@@ -416,6 +415,7 @@ class Model:
         game = self.gameType
         args += '--game %s '%presets[game]
         args += '-p -t  -m -sel'
+        print(args)
         self.solverProc = subprocess.Popen(args, universal_newlines=True, 
                                            stdout=subprocess.PIPE, shell=True)  
         

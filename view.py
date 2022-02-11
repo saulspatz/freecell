@@ -383,8 +383,9 @@ class View:
                                  parent = self.canvas):
             messagebox.showinfo('','Solved\nPress Redo to see solution', parent=self.canvas) 
             model.postSolution()
+            self.show()
             self.enableRedo()
-            self.show()    
+            self.disableSolve()
 
     def disableRedo(self):
         self.buttons.itemconfigure('redo', state=tk.HIDDEN)
@@ -401,7 +402,10 @@ class View:
             self.buttons.itemconfigure(item, state=tk.NORMAL)
             
     def enableSolve(self):
-        self.buttons.itemconfigure('solve', state=tk.NORMAL)    
+        self.buttons.itemconfigure('solve', state=tk.NORMAL)
+        
+    def disableSolve(self):
+        self.buttons.itemconfigure('solve', state=tk.HIDDEN)
 
     def wm_delete_window(self):
         self.root.destroy()
