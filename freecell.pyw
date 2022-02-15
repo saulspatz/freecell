@@ -7,12 +7,9 @@ and the foundation piles.  Also, they don't include solvers.
 '''
 import model
 from view import View
-try:
-    import tkinter as tk
-    from tkinter.messagebox import showerror, showinfo, askokcancel
-except ImportError:
-    import Tkinter as tk
-    from tkMessageBox import showerror, showinfo, askokcancel
+
+import tkinter as tk
+from tkinter.messagebox import showerror, showinfo, askokcancel
 import sys, os
 
 helpText = '''

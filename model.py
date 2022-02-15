@@ -71,7 +71,7 @@ class Stack(list):
                 return idx
         return -1
     
-    def grab(self, n):
+    def grab(self, k):
         '''
         Remove the card at index k and all those on top of it.
         '''    
@@ -410,7 +410,8 @@ class Model:
         except:
             pass
         self.board = self.boardString()
-        cmd = os.path.join(self.parent.runDir,'fc-solve')
+        #cmd = os.path.join(self.parent.runDir,'fc-solve')
+        cmd = 'fc-solve'
         args = 'echo '+'"'+self.board+'"' ' | ' +cmd+ ' '
         game = self.gameType
         args += '--game %s '%presets[game]

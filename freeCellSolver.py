@@ -68,7 +68,7 @@ class Tableau(object):
                 opp = found[:2]
             if min(opp) >= rank-1 or min(found) >= rank-2:
                 moved = True
-                free.remove(card)
+                self.free.remove(card)
                 self.foundations[suit] += 1
                 self.history.append( ('FORCED', 'FREE', card, 'FOUND') )
         if moved:
