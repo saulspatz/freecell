@@ -5,6 +5,7 @@ Freecell solitaire.  I wrote this because the games I find online have various d
 The cards are too small, and they don't leave enough space between the freecells
 and the foundation piles.  Also, they don't include solvers. 
 '''
+from sympy import root
 import model
 from view import View
 
@@ -131,11 +132,15 @@ class FreeCell:
         model = self.model
         titles = ['Freecell Solitaire',
                        'Forecell Solitaire',
-                       "Baker's Game"]        
-        game = model.gameType
-        title = titles[game]
-        showinfo(title, 'Game change will take effect next deal', 
+                       "Baker's Game"]
+        try:        
+            game = model.gameType
+            title = titles[game]
+            showinfo(title, 'Game change will take effect next deal', 
                         parent=self.view.canvas)
+        except AttributeError:
+            game = self.gameType.get()
+            self.view.root.title(titles[game])
             
     def quit(self):
         try:
