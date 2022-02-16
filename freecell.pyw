@@ -5,7 +5,6 @@ Freecell solitaire.  I wrote this because the games I find online have various d
 The cards are too small, and they don't leave enough space between the freecells
 and the foundation piles.  Also, they don't include solvers. 
 '''
-from sympy import root
 import model
 from view import View
 
